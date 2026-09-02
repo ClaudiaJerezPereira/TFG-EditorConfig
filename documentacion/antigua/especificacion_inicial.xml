@@ -1,0 +1,36 @@
+<EurobotConfig>
+<!-- Definimos el nombre y la coordenada "y" de las guías horizontales-->
+<horizontal NOMBRE="GH1" POSICION="530" />
+<horizontal NOMBRE="GH2" POSICION="645" />
+<horizontal NOMBRE="GH3" POSICION="785" />
+<horizontal NOMBRE="GH4" POSICION="968" />
+
+<!-- Definimos el nombre y la coordenada "x" de las guías verticales-->
+<vertical NOMBRE="GV1" POSICION="256" />
+<vertical NOMBRE="GV2" POSICION="875" />
+<vertical NOMBRE="GV3" POSICION="960" />
+
+<!-- Definimos un grupo de controles. Un grupo viene definido por las coordenadas relativas a las guías de grupos, y los controles que lo forman. -->
+<grupo NOMBRE="Tribunas">
+    <horizontal NOMBRE="CH0" POSICION="0" /> <!--Esta guía quizás es mejor que el programa la defina de forma automática, pero en cualquier caso debe estar si queremos crear algún control en la coordenada 0-->
+    <horizontal NOMBRE="CH1" POSICION="27" />
+    <horizontal NOMBRE="CH2" POSICION="42" />
+    <horizontal NOMBRE="CH3" POSICION="85" />
+    <vertical NOMBRE="CV0" POSICION="0" /> <!--Idem-->
+    <vertical NOMBRE="CV1" POSICION="12" />
+    <vertical NOMBRE="CV2" POSICION="40" />
+    <vertical NOMBRE="CV3" POSICION="74" />
+    <control NOMBRE="Tribuna1" X1="CV0" X2="CV1" Y1="CH0" Y2="CH2" TIPO="xx" /> <!-- El tipo de control y demás lo dejamos para más adelante. De momento, hacemos todos botones de tkinter -->
+    <control NOMBRE="Tribuna2" X1="CV1" X2="CV2" Y1="CH0" Y2="CH2" TIPO="xx" />
+</grupo>
+<!-- Definimos más grupos -->
+
+<!-- A partir de aquí, definimos parciales. Un parcial es un grupo de controles situado en una parte concreta de la imagen. Hay que definir qué tipo de grupo es, de los que tenemos definidos arriba, y las coordenadas de grupo donde situarlo en la imagen -->
+<parcial NOMBRE="Tribuna izquierda" GRUPO="Tribunas" X="GV1" Y="GH1" W="100" H="80" X0="0" Y0="0" />
+<!-- En el tag de arriba, X e Y se refieren a las coordenadas de las guías de grupo que se toma como origen de coordenadas donde situar el grupo de controles. W, H, X e Y se refieren al ancho, alto, posicion x y posición y respecto a las coordenadas del grupo donde situar la etiqueta donde se muestra el total de ese parcial. Faltaría por definir el tipo de fuente, tamaño, color de la fuente, color del fondo, etc, pero eso se puede dejar para más adelante. -->
+<!-- A partir de aquí definimos más grupos de controles-->
+
+<!-- Definimos las etiquetas. En este caso, las etiquetas van referidas a las guías de grupos, ya que no suele haber grupos de etiquetas. -->
+<etiqueta X1="GV1" X2="GV2" Y1="GH1" Y2="GH2" TEXTO="Total" />
+<etiqueta X1="GV2" X2="GV3" Y1="GH1" Y2="GH2" TEXTO="Parcial" />
+</EurobotConfig>

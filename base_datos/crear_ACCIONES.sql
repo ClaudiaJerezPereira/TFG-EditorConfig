@@ -1,0 +1,8 @@
+
+DROP DATABASE IF EXISTS eurobot_ACCIONES;
+CREATE DATABASE eurobot_ACCIONES;
+USE eurobot_ACCIONES;
+
+SOURCE ./eurobot_ACCIONES.sql
+SOURCE ./eurobot_DATOS.sql
+SOURCE ./arbitraje.sql
