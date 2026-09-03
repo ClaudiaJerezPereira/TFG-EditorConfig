@@ -385,9 +385,10 @@ def menu_catalogos(padre, al_elegir):
                command=lambda: abrir("estilos")).pack(pady=2)
     ttk.Label(m, text="Los cuatro se vuelcan a la base de datos con el\n"
                       "botón «Exportar SQL».\n\n"
-                      "Los totales generales reservan los primeros\n"
-                      "identificadores de grupo: los grupos que dibujes\n"
-                      "empiezan justo detrás y se corren si añades otro.\n\n"
+                      "Los totales generales ocupan los primeros  \n"
+                      "identificadores de grupo. Los grupos que \n"
+                      "dibujes comienzan justo después y cambian de \n"
+                      "posición si añades otro total.\n\n"
                       "En los lados, el ID 0 es el lado común (acciones\n"
                       "que puntúan a los dos equipos).",
               foreground="#666", justify="left").pack(anchor="w", pady=(6, 0))
