@@ -25,11 +25,12 @@ en este orden:
 | Script | Qué aporta |
 |---|---|
 | `eurobot_ACCIONES.sql` | La estructura: tablas, claves y vistas. Es la misma todos los años |
-| `eurobot_DATOS.sql` | Los datos comunes que normalmente vendrían de la base de datos de partidos: los lados mínimos para sus claves ajenas y unos partidos simulados. Los nombres y colores definitivos de los lados, y los totales generales, los pone el script de la edición |
+| `eurobot_DATOS.sql` | Los datos comunes que normalmente vendrían de la base de datos de partidos: los dos lados mínimos para sus claves ajenas y unos partidos simulados. Los nombres y colores definitivos de los lados, y los totales generales, los pone el script de la edición |
 | `eurobot_ACCIONES_<año>.sql` | Los datos de **una edición** concreta: sus grupos, guías, botones, etiquetas y parciales |
 
-Los tres los encadena `crear_ACCIONES.sql`, que borra la base de datos y la
-vuelve a crear desde cero:
+Los encadena `crear_ACCIONES.sql`, que borra la base de datos y la vuelve a crear
+desde cero. Como script de edición carga `arbitraje.sql`, que es el que produce el
+editor con «Exportar SQL»:
 
 ```bash
 cd base_datos && ./crear_ACCIONES.sh     # Linux
@@ -40,15 +41,16 @@ Los dos lanzadores usan el usuario `admin/admin`; cámbialo dentro si el tuyo es
 otro. **`SOURCE` usa rutas relativas, así que hay que ejecutarlos desde
 `base_datos/`.**
 
-Para cargar otra edición (o el script que acaba de generar el editor), se cambia
-la última línea de `crear_ACCIONES.sql`:
+Para cargar otra edición, se cambia la última línea de `crear_ACCIONES.sql`:
 
 ```sql
 SOURCE ./eurobot_ACCIONES_2026.sql
 ```
 
-Están incluidas las ediciones **2025** y **2026**. La 2026 es la que se carga por
-defecto.
+Están incluidos los scripts escritos a mano de las ediciones **2025** y **2026**,
+que son la referencia de la que salió el formato del volcado. Ojo: el de 2026
+marca los parciales comunes con `FK_LADO = 0`, un convenio que ya no existe, así
+que hay que revisarlo antes de cargarlo.
 
 ## El editor
 
