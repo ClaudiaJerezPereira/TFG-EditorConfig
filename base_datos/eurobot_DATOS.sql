@@ -18,9 +18,16 @@ START TRANSACTION;
 
 --
 -- Los lados, con el mínimo imprescindible para que las claves ajenas de este
--- script (Arbitraje_AuxEtiquetasPartido.FK_LADO) tengan a qué apuntar. El lado 0
--- es el común, para las acciones que dan puntos a ambos equipos, y el 1 y el 2
--- son los dos equipos del partido.
+-- script (Arbitraje_AuxEtiquetasPartido.FK_LADO) tengan a qué apuntar: los dos
+-- equipos del partido simulado.
+--
+-- ID_LADO es sólo la clave primaria de la fila y empieza en 1, como en las demás
+-- tablas: no hay ningún lado con significado propio. Las acciones cuyo valor
+-- afecta a todos los lados (las que puntúan a ambos equipos) no se marcan con un
+-- lado, sino con Arbitraje_GrupoAcciones.comun, que es lo que la aplicación de
+-- arbitraje consulta para saber si tiene que refrescar los parciales de todos los
+-- lados o sólo el del equipo tocado. Por eso un partido puede tener los lados que
+-- haga falta, y no forzosamente dos.
 --
 -- Los nombres y los colores definitivos los pone el script de la edición que
 -- genera el editor de mapas, que se ejecuta después y vuelca Partido_Lado con
@@ -31,7 +38,6 @@ INSERT INTO Partido_Lado (
         nombre,
         color_h,
         color_s) VALUES
-    (0, 'Común',    0.100, 0.100),
     (1, 'Amarillo', 0.122, 0.919),
     (2, 'Azul'    , 0.559, 0.519);
 
