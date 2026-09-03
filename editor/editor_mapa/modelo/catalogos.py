@@ -5,20 +5,20 @@
     arbitros -> Arbitraje_ListaArbitros
     estilos  -> Arbitraje_EstiloFuente
 
-Los cuatro se vuelcan al exportar el SQL (CATALOGOS_VOLCADOS).
+Los cuatro se vuelcan al exportar el SQL (ver persistencia/sql_io.py).
 
 Modulo del MODELO: no importa tkinter ni nada de la interfaz.
 """
 import colorsys
 
-from .constantes import CATALOGOS_VOLCADOS, ID_MINIMO, ID_MINIMO_CATALOGO
+from .constantes import ID_MINIMO
 
 # Punto de partida de Partido_Lado: el tono y la saturacion se dan en 0..1 (matiz
-# HSV), no en grados. El 0 es el lado "comun" (acciones que puntuan a los dos
-# equipos) y el 1 y el 2 son los dos equipos del partido: ese convenio lo da por
-# hecho la aplicacion de arbitraje, asi que estos tres IDs no se renumeran.
+# HSV), no en grados. Son los dos lados del partido tipico de Eurobot, pero ni el
+# numero ni la cantidad son fijos: el ID es solo la clave primaria de la fila (desde
+# 1, como en los demas catalogos) y se pueden anadir tantos lados como equipos o
+# robots se enfrenten a la vez.
 LADOS_DEFECTO = [
-    {"id": 0, "nombre": "Común",    "color_h": 0.100, "color_s": 0.100},
     {"id": 1, "nombre": "Amarillo", "color_h": 0.122, "color_s": 0.919},
     {"id": 2, "nombre": "Azul",     "color_h": 0.559, "color_s": 0.519},
 ]
@@ -62,15 +62,13 @@ def color_lado(lado, color_v=255):
 
 
 class Catalogos:
-    """Las tres tablas de referencia, con sus busquedas por identificador."""
+    """Las cuatro tablas de referencia, con sus busquedas por identificador."""
 
     def __init__(self):
         self.totales = [dict(t) for t in TOTALES_DEFECTO]
         self.lados = [dict(l) for l in LADOS_DEFECTO]
         self.arbitros = [dict(a) for a in ARBITROS_DEFECTO]
         self.estilos = [dict(e) for e in ESTILOS_DEFECTO]
-        # Cuales se vuelcan a la base de datos al exportar el SQL.
-        self.volcar = list(CATALOGOS_VOLCADOS)
 
     def reiniciar(self):
         self.__init__()
@@ -80,14 +78,14 @@ class Catalogos:
         """Deja los totales en 1..N sin huecos, respetando su orden en la lista.
         Su ID no es un dato libre: es el hueco que reservan en
         Arbitraje_GrupoAcciones."""
-        for n, t in enumerate(self.totales, ID_MINIMO_CATALOGO):
+        for n, t in enumerate(self.totales, ID_MINIMO):
             t["id"] = n
         return self.totales
 
     def primer_grupo(self):
         """Primer ID_GRUPO_ACCIONES libre para los grupos que dibuja el usuario: los
         totales ocupan 1..N, asi que los grupos empiezan en N+1."""
-        return len(self.totales) + ID_MINIMO_CATALOGO
+        return len(self.totales) + ID_MINIMO
 
     def lado(self, ident):
         return next((l for l in self.lados if l["id"] == ident), None)
@@ -101,31 +99,39 @@ class Catalogos:
     def estilo_defecto(self):
         # Sin catalogo se devuelve el minimo, no 0: un 0 seria un ID invalido y la
         # base de datos rechazaria la clave ajena.
-        return self.estilos[0]["id"] if self.estilos else ID_MINIMO_CATALOGO
+        return self.estilos[0]["id"] if self.estilos else ID_MINIMO
+
+    def lado_defecto(self):
+        """Lado con el que nace un parcial y con el que se sustituye uno borrado.
+
+        Es el primero del catalogo, no un numero fijo: en Partido_Lado el ID es solo
+        la clave primaria (puede ser el 1, el 3 o el 547) y el catalogo puede tener
+        los lados que haga falta. Sin catalogo se devuelve el minimo, porque
+        FK_LADO no admite nulo."""
+        return self.lados[0]["id"] if self.lados else ID_MINIMO
 
     def color(self, id_lado, color_v=255):
         return color_lado(self.lado(id_lado), color_v)
 
     # --- Comprobacion de los identificadores ---
     def ids_invalidos(self):
-        """Filas cuyo ID no llega al minimo de su catalogo.
+        """Filas cuyo ID no llega al minimo (ID_MINIMO, el mismo para los cuatro).
 
         Devuelve una lista de textos ya redactados, para poder avisar igual al abrir
-        un XML antiguo y al exportar el SQL."""
+        un XML antiguo y al exportar el SQL. Los lados tambien entran aqui: un XML
+        guardado con una version anterior puede traer el lado 0, que ya no vale."""
         avisos = []
         for cual, nombre in (("totales", "total general"), ("lados", "lado"),
                              ("arbitros", "árbitro"),
                              ("estilos", "estilo de fuente")):
-            minimo = ID_MINIMO[cual]
             for fila in getattr(self, cual):
                 try:
                     ident = int(fila.get("id"))
                 except (TypeError, ValueError):
                     avisos.append(f"Hay un {nombre} sin ID numérico.")
                     continue
-                if ident < minimo:
+                if ident < ID_MINIMO:
                     avisos.append(
                         f"El {nombre} con ID {ident} no es válido: el ID es la clave "
-                        f"primaria de la tabla y en este catálogo tiene que ser "
-                        f"{minimo} o mayor.")
+                        f"primaria de la tabla y tiene que ser {ID_MINIMO} o mayor.")
         return avisos

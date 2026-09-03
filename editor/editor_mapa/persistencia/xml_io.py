@@ -7,8 +7,6 @@ dependencias de la interfaz.
 import os
 from xml.etree import ElementTree as ET
 
-from ..modelo.constantes import CATALOGOS_VOLCADOS, NOMBRES_CATALOGOS
-
 _SI = ("1", "true", "True", "sí", "si")
 
 
@@ -26,20 +24,6 @@ def _num(v):
     """Los valores enteros se escriben sin decimales, como en el formato de ejemplo."""
     v = float(v)
     return str(int(round(v))) if abs(v - round(v)) < 1e-6 else f"{v:.2f}"
-
-
-def indentar(elem, nivel=0):
-    """Sangrado manual (ET.indent solo existe desde Python 3.9)."""
-    hueco = "\n" + "    " * nivel
-    if len(elem):
-        if not (elem.text or "").strip():
-            elem.text = hueco + "    "
-        for hijo in elem:
-            indentar(hijo, nivel + 1)
-        if not (elem[-1].tail or "").strip():
-            elem[-1].tail = hueco
-    if nivel and not (elem.tail or "").strip():
-        elem.tail = hueco
 
 
 # =============================================================== ESCRITURA
@@ -87,10 +71,10 @@ def _escribir_catalogos(raiz, m):
     cat_m = m.catalogos
     raiz.append(ET.Comment(" Catalogos: tablas de referencia (General_Resultado, "
                            "Partido_Lado, Arbitraje_ListaArbitros, "
-                           "Arbitraje_EstiloFuente). VOLCAR indica cuales se exportan "
-                           "a SQL: los cuatro. Los <resultado> son los totales "
-                           "generales, y reservan los primeros ID_GRUPO_ACCIONES "))
-    cat = ET.SubElement(raiz, "catalogos", {"VOLCAR": " ".join(cat_m.volcar)})
+                           "Arbitraje_EstiloFuente). Los cuatro se exportan a SQL. "
+                           "Los <resultado> son los totales generales, y reservan los "
+                           "primeros ID_GRUPO_ACCIONES "))
+    cat = ET.SubElement(raiz, "catalogos")
     for t in cat_m.totales:
         ET.SubElement(cat, "resultado", {"ID": str(t["id"]),
                                          "NOMBRE": str(t.get("nombre", ""))})
@@ -198,7 +182,7 @@ def _escribir_parciales(raiz, m, nom_col):
             "GRUPO": m.nombre_tipo(inst["tipo"]),
             "X": nom_col[inst["gv"]], "Y": nom_col[inst["gh"]],
             "REFLEJADO": "1" if inst.get("inv") else "0",
-            "LADO": str(p.get("lado", 0)),
+            "LADO": str(p.get("lado", m.catalogos.lado_defecto())),
             "VALOR_DEFECTO": str(int(p.get("valor_defecto", 0))),
             "COLOR_V": str(int(p.get("color_v", 255))),
             "MOSTRAR_PUNTOS": "1" if p.get("mostrar_puntos", True) else "0",
@@ -212,7 +196,7 @@ def _escribir_parciales(raiz, m, nom_col):
 
 def guardar(m, ruta):
     raiz = serializar(m)
-    indentar(raiz)
+    ET.indent(raiz, space="    ")
     ET.ElementTree(raiz).write(ruta, encoding="utf-8", xml_declaration=True)
 
 
@@ -258,15 +242,6 @@ def _leer_catalogos(m, raiz, errores=None):
         except (TypeError, ValueError):
             return d
 
-    volcar = [c for c in (cat.get("VOLCAR") or "").split() if c in NOMBRES_CATALOGOS]
-    # Los XML guardados antes de que los lados se volcaran traen VOLCAR="arbitros
-    # estilos". Se completan con los lados, para que el SQL exportado no dependa de la
-    # version del editor con la que se guardo el archivo.
-    for cual in ("lados", "totales"):
-        if volcar and cual not in volcar:
-            volcar.insert(0, cual)
-    m.catalogos.volcar = volcar or list(CATALOGOS_VOLCADOS)
-
     totales = [{"id": int(num(e, "ID")), "nombre": e.get("NOMBRE", "")}
                for e in cat.findall("resultado")]
     lados = [{"id": int(num(e, "ID")), "nombre": e.get("NOMBRE", ""),
@@ -293,8 +268,11 @@ def _leer_catalogos(m, raiz, errores=None):
         m.catalogos.estilos = estilos
 
     # Un XML guardado con una version anterior puede traer identificadores 0 o
-    # negativos. No se tocan (cambiarlos rompeira las referencias del propio archivo),
-    # pero se avisa para que se corrijan en el editor antes de exportar el SQL.
+    # negativos, incluido el antiguo lado 0 («Común»), que ya no es valido: ahora lo
+    # comun es una marca del grupo (Arbitraje_GrupoAcciones.comun) y el ID de un lado
+    # empieza en 1 como el de los demas catalogos. No se tocan (cambiarlos romperia
+    # las referencias del propio archivo), pero se avisa para que se corrijan en el
+    # editor antes de exportar el SQL.
     if errores is not None:
         errores += m.catalogos.ids_invalidos()
 
@@ -451,7 +429,9 @@ def _leer_parciales(m, raiz, col_por_nombre, tipo_por_nombre, errores):
                 return d
 
         param = m.param_zona()
-        param.update({"lado": entero("LADO", 0),
+        # Sin LADO en el archivo se queda el que trae param_zona (el primero del
+        # catalogo): FK_LADO no admite nulo y el 0 ya no es un ID valido.
+        param.update({"lado": entero("LADO", param["lado"]),
                       "valor_defecto": entero("VALOR_DEFECTO", 0),
                       "color_v": entero("COLOR_V", 255)})
         param["arbitro"] = entero("ARBITRO", None) \

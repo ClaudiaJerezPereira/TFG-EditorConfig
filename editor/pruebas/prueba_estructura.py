@@ -63,7 +63,7 @@ def preparar_dobles():
         setattr(tk, sub, _modulo(f"tkinter.{sub}"))
     tk.font = _modulo("tkinter.font", Font=_Font)
 
-    img = _modulo("PIL.Image", Resampling=types.SimpleNamespace(LANCZOS=1), LANCZOS=1)
+    img = _modulo("PIL.Image", Resampling=types.SimpleNamespace(LANCZOS=1))
     itk = _modulo("PIL.ImageTk", PhotoImage=_Falso)
     _modulo("PIL", Image=img, ImageTk=itk)
     return True
@@ -79,6 +79,7 @@ MODULOS = [
     "editor_mapa.persistencia",
     "editor_mapa.persistencia.xml_io",
     "editor_mapa.persistencia.sql_io",
+    "editor_mapa.persistencia.sql_mapa",
     "editor_mapa.vista.apariencia",
     "editor_mapa.vista.fuentes",
     "editor_mapa.vista.imagenes",

@@ -10,7 +10,9 @@ class DialogoZona(_DialogoBase):
     """Parametros de una colocacion (parcial). Tabla Arbitraje_ZonaAcciones.
 
     Tambien se editan aqui el nombre del GRUPO al que pertenece el parcial y si es
-    comun, porque el grupo no tiene otro sitio donde editarse. Del total, lo unico
+    comun (Arbitraje_GrupoAcciones.comun: la marca con la que el arbitraje sabe que al
+    tocar una accion tiene que refrescar los parciales de todos los lados y no solo el
+    del equipo tocado), porque el grupo no tiene otro sitio donde editarse. Del total, lo unico
     que decide el parcial es si lo muestra
     (Arbitraje_ZonaAcciones.mostrar_puntos); su tipo de letra y su desplazamiento
     son del grupo y se editan con doble clic sobre la propia etiqueta.
@@ -35,7 +37,7 @@ class DialogoZona(_DialogoBase):
         self.var_grupo = tk.StringVar(value=grupo_nombre)
         self.var_comun = tk.BooleanVar(value=bool(grupo_comun))
         self.var_nombre = tk.StringVar(value=nombre)
-        self.var_lado = tk.StringVar(value=self._nombre_por_id(self.lados, param.get("lado", 0), "nombre"))
+        self.var_lado = tk.StringVar(value=self._nombre_por_id(self.lados, param.get("lado"), "nombre"))
         self.var_arbitro = tk.StringVar(
             value=self._nombre_por_id(self.arbitros, param.get("arbitro"), "nombre", permitir_ninguno=True))
         self.var_reflejar = tk.BooleanVar(value=bool(inv))
@@ -55,7 +57,7 @@ class DialogoZona(_DialogoBase):
         ttk.Label(gf, text="Nombre del grupo:").grid(row=0, column=0, sticky="w", pady=2)
         ttk.Entry(gf, textvariable=self.var_grupo, width=24).grid(row=0, column=1, sticky="we",
                                                                   pady=2)
-        ttk.Checkbutton(gf, text="Común (el valor de un lado afecta a ambos lados)",
+        ttk.Checkbutton(gf, text="Común (el valor de un lado afecta a todos los lados)",
                         variable=self.var_comun).grid(row=1, column=0, columnspan=2,
                                                       sticky="w", pady=(4, 0))
 

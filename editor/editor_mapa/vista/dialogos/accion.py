@@ -65,7 +65,7 @@ class DialogoAccion(_DialogoBase):
 
     def __init__(self, padre, nombre="", param=None, estilos=None,
                  contenido=None, tam_control=None,
-                 lados=None, lado_parcial=0, color_v=255,
+                 lados=None, lado_parcial=None, color_v=255,
                  ruta_grafico=None, carpeta_graficos=None):
         super().__init__(padre)
         self.title("Parámetros del control")

@@ -28,7 +28,7 @@ class DialogoContenido(_DialogoBase):
     """
 
     def __init__(self, padre, contenido=None, nombre="", titulo="Contenido de la etiqueta",
-                 param=None, estilos=None, lados=None, tam_control=None, lado_parcial=0,
+                 param=None, estilos=None, lados=None, tam_control=None, lado_parcial=None,
                  ruta_grafico=None, carpeta_graficos=None):
         super().__init__(padre)
         self.title(titulo)

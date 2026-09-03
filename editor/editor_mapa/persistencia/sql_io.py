@@ -39,6 +39,11 @@ def insert_totales(totales):
 def insert_lados(lados):
     """Partido_Lado: los lados del partido, con el tono y la saturacion de su color.
 
+    Se vuelcan todos los que tenga el catalogo, con el ID que tengan (desde 1, no
+    necesariamente seguidos): en esta tabla el numero es solo la clave primaria de la
+    fila, no identifica a un equipo concreto, y un partido puede tener mas de dos
+    lados si se enfrentan varios robots a la vez.
+
     La tabla puede existir y estar llena antes de este script: en la base de datos
     completa la trae la de partidos, y en la construccion autonoma la rellena
     eurobot_DATOS.sql, que se ejecuta antes. Por eso el volcado no es un INSERT a

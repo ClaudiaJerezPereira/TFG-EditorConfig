@@ -237,8 +237,32 @@ def main():
     assert "INSERT INTO Arbitraje_ListaArbitros" in sql
     assert "INSERT INTO Arbitraje_EstiloFuente" in sql
     lados_sql = {f["ID_LADO"] for f in tablas["Partido_Lado"]}
-    assert lados_sql == {"0", "1", "2"}, lados_sql
-    print("Catálogos: se vuelcan los tres, y Partido_Lado sin romper si ya existe.")
+    assert lados_sql == {"1", "2"}, lados_sql
+    assert "0" not in lados_sql, "en Partido_Lado el ID empieza en 1, como en el resto"
+    print("Catálogos: se vuelcan los cuatro, y Partido_Lado sin romper si ya existe.")
+
+    # --- Los lados no son 1 y 2 por obligación: ni el número ni la cantidad ---
+    # Cuatro robots enfrentándose a la vez son cuatro lados, y sus identificadores no
+    # tienen que ir seguidos: lo común (que al tocar una acción se refresquen todos
+    # los parciales) es una marca del GRUPO, no un lado reservado.
+    m_lados = ejemplo_mapa.mapa()
+    m_lados.catalogos.lados = [
+        {"id": 1,   "nombre": "Robot A", "color_h": 0.122, "color_s": 0.919},
+        {"id": 7,   "nombre": "Robot B", "color_h": 0.559, "color_s": 0.519},
+        {"id": 42,  "nombre": "Robot C", "color_h": 0.333, "color_s": 0.700},
+        {"id": 547, "nombre": "Robot D", "color_h": 0.800, "color_s": 0.600},
+    ]
+    for inst, lado in zip(m_lados.instancias, (1, 7, 42, 547)):
+        inst["param"]["lado"] = lado
+    sql_l, avisos_l = sql_mapa.script_edicion(m_lados)
+    err_l, tab_l = revisar(sql_l)
+    assert not err_l, err_l
+    assert not avisos_l, avisos_l
+    assert {f["ID_LADO"] for f in tab_l["Partido_Lado"]} == {"1", "7", "42", "547"}
+    assert {z["FK_LADO"] for z in tab_l["Arbitraje_ZonaAcciones"]} \
+        == {"1", "7", "42", "547"}
+    print("Un partido con cuatro lados y con IDs sueltos (1, 7, 42, 547) se vuelca "
+          "sin errores.")
 
     m_comillas = ejemplo_mapa.mapa()
     m_comillas.catalogos.estilos[0]["descripcion"] = "Penaliz. d'O"

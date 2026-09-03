@@ -233,9 +233,6 @@ class VistaLienzo:
         partido, asi que se dibuja su identificador entre comillas angulares para
         que se vea que es dinamico. Las imagenes web tampoco se pueden dibujar."""
         cont = c["contenido"]
-        if "modo" in cont and "tipo" not in cont:
-            # Compatibilidad: el total sigue guardando su texto con la clave antigua.
-            return cont.get("valor", "")
         tipo = cont.get("tipo", 1)
         valor = str(cont.get("valor", ""))
         if cont.get("externa"):
@@ -263,8 +260,8 @@ class VistaLienzo:
         parcial en los botones y el total."""
         pz = (inst or {}).get("param", {})
         if c["clase"] == "etiqueta":
-            return pz.get("lado", 0), c.get("param", {}).get("color_v", 255)
-        return pz.get("lado", 0), pz.get("color_v", 255)
+            return pz.get("lado"), c.get("param", {}).get("color_v", 255)
+        return pz.get("lado"), pz.get("color_v", 255)
 
     def relleno_control(self, c, inst=None):
         """El color real lo dan el lado y la intensidad, igual que en el arbitraje.

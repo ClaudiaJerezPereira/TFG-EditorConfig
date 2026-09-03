@@ -10,7 +10,6 @@ from rutas import XML_EJEMPLO   # noqa: F401  (deja el paquete importable)
 from editor_mapa.modelo import ModeloMapa, color_lado          # noqa: E402
 from editor_mapa.modelo.catalogos import ESTILOS_DEFECTO, LADOS_DEFECTO   # noqa: E402
 from editor_mapa.modelo.constantes import ID_MINIMO             # noqa: E402
-from editor_mapa.modelo.constantes import CATALOGOS_VOLCADOS   # noqa: E402
 from editor_mapa.modelo.geometria import reparto_icono         # noqa: E402
 from editor_mapa.persistencia import xml_io                    # noqa: E402
 
@@ -190,6 +189,7 @@ def prueba_simetria():
 def prueba_apariencia():
     titulo("Apariencia: colores e iconos")
     lados = {l["nombre"]: l for l in LADOS_DEFECTO}
+    assert set(lados) == {"Amarillo", "Azul"}, lados
     for n, l in lados.items():
         print(f"   {n:<9} -> {color_lado(l, 255)}")
     assert color_lado(lados["Amarillo"], 255).startswith("#ff")
@@ -324,27 +324,17 @@ def prueba_total_anclado():
 def prueba_catalogos_en_el_xml():
     titulo("Catálogos en el XML")
     # El volcado de los catalogos se comprueba dentro del script completo, en
-    # prueba_sql.py; aqui solo interesa que VOLCAR viaje bien en el XML.
-
-    # VOLCAR viaja en el XML.
+    # prueba_sql.py; aqui solo interesa que los cuatro viajen en el XML y vuelvan
+    # igual que se guardaron.
     m2 = modelo()
     x = texto(m2)
-    assert (ET.fromstring(x).find("catalogos").get("VOLCAR")
-            == "totales lados arbitros estilos")
-    assert "lado" in {h.tag for h in ET.fromstring(x).find("catalogos")}
+    cat = ET.fromstring(x).find("catalogos")
+    assert {h.tag for h in cat} == {"resultado", "lado", "estilo"}, \
+        [h.tag for h in cat]   # los arbitros nacen vacios
     m3 = modelo()
     xml_io.cargar(m3, ET.fromstring(x))
-    assert m3.catalogos.volcar == list(CATALOGOS_VOLCADOS)
-    print("Los cuatro catálogos viajan en el XML y los cuatro se vuelcan.")
-
-    # Un XML guardado antes de que los lados se volcaran se completa al abrirlo.
-    antiguo = ET.fromstring(x)
-    antiguo.find("catalogos").set("VOLCAR", "arbitros estilos")
-    m4 = modelo()
-    xml_io.cargar(m4, antiguo)
-    assert m4.catalogos.volcar == ["totales", "lados", "arbitros", "estilos"], \
-        m4.catalogos.volcar
-    print("Un XML antiguo con VOLCAR incompleto se completa al abrirlo.")
+    assert texto(m3) == x
+    print("Los cuatro catálogos viajan en el XML y vuelven igual.")
 
     # --- Totales generales: su ID es la posición y reservan los primeros grupos ---
     m5 = modelo()
@@ -368,12 +358,14 @@ def prueba_catalogos_en_el_xml():
 
 def prueba_ids_catalogos():
     titulo("El ID de los catálogos empieza en 1")
-    # Los catalogos que crea el editor (arbitros y estilos) van a una tabla cuya
-    # clave primaria es INT UNSIGNED: ni 0 ni negativos. Los lados son la excepcion,
-    # porque Partido_Lado la crea eurobot_DATOS.sql y alli el lado 0 ("Comun") existe.
-    assert ID_MINIMO["arbitros"] == 1 and ID_MINIMO["estilos"] == 1
-    assert all(e["id"] >= 1 for e in ESTILOS_DEFECTO)
-    print("El catálogo de estilos por defecto ya no usa el ID 0.")
+    # El ID de los cuatro catalogos es la clave primaria de su tabla (INT UNSIGNED):
+    # ni 0 ni negativos. Los lados no son una excepcion: en Partido_Lado el numero es
+    # solo la clave de la fila, y lo "comun" no es un lado sino una marca del grupo
+    # (Arbitraje_GrupoAcciones.comun).
+    assert ID_MINIMO == 1
+    assert all(e["id"] >= ID_MINIMO for e in ESTILOS_DEFECTO)
+    assert all(l["id"] >= ID_MINIMO for l in LADOS_DEFECTO)
+    print("Los catálogos por defecto (estilos y lados) empiezan en 1.")
 
     m = modelo()
     assert not m.catalogos.ids_invalidos()
@@ -387,18 +379,48 @@ def prueba_ids_catalogos():
     assert any("estilo de fuente con ID -1" in a for a in malos)
     print("Un 0 o un negativo se detectan en árbitros y en estilos.")
 
-    # El lado 0 sigue siendo valido: lo necesita la aplicacion de arbitraje.
+    # El lado 0 ya no vale: se avisa igual que en los demas catalogos.
     m2 = modelo()
-    assert any(l["id"] == 0 for l in m2.catalogos.lados)
-    assert not m2.catalogos.ids_invalidos()
-    print("El lado 0 («Común») no se marca como error: no lo crea el editor.")
+    m2.catalogos.lados = [{"id": 0, "nombre": "Común", "color_h": 0.1, "color_s": 0.1}]
+    malos2 = m2.catalogos.ids_invalidos()
+    assert len(malos2) == 1 and "lado con ID 0" in malos2[0], malos2
+    print("El lado 0 se marca como error, como cualquier otro ID 0.")
+
+    # El numero de un lado no significa nada por si mismo: ni tiene que ser 1 y 2, ni
+    # tiene que haber solo dos. Cuatro robots enfrentandose a la vez son cuatro lados,
+    # y un lado puede llevar el 547 sin que nada dependa de ello.
+    m3 = modelo()
+    m3.catalogos.lados = [{"id": n, "nombre": f"Robot {n}", "color_h": 0.1 * i,
+                           "color_s": 0.8}
+                          for i, n in enumerate((1, 7, 42, 547))]
+    assert not m3.catalogos.ids_invalidos()
+    assert m3.catalogos.lado_defecto() == 1
+    assert m3.param_zona()["lado"] == 1
+    # Y si el catalogo no empieza por el 1, el parcial nace con el primero que haya.
+    m3.catalogos.lados = m3.catalogos.lados[1:]
+    assert m3.catalogos.lado_defecto() == 7
+    assert m3.param_zona()["lado"] == 7
+    print("Se admiten los lados que haga falta y con cualquier ID (1, 7, 42, 547).")
 
     # Al abrir un XML antiguo con IDs no validos, se avisa en vez de callar.
     x = texto(m)
-    m3 = modelo()
-    _, err = xml_io.cargar(m3, ET.fromstring(x))
+    m4 = modelo()
+    _, err = xml_io.cargar(m4, ET.fromstring(x))
     assert len(err) == 2, err
     print("Un XML antiguo con IDs 0 o negativos se abre, pero avisa.")
+
+    # Un parcial que apunta a un lado borrado del catalogo se recoloca en el primero
+    # que quede, no en el 0.
+    m5 = modelo()
+    tid = m5.crear_grupo("Despensa")
+    inst = m5.colocar_grupo(tid, m5.anadir_guia_colocacion("v", 100),
+                            m5.anadir_guia_colocacion("h", 100))[0]
+    inst["param"]["lado"] = 2
+    m5.catalogos.lados = [{"id": 3, "nombre": "Verde", "color_h": 0.3, "color_s": 0.8}]
+    cambios = m5.depurar_catalogos()
+    assert len(cambios) == 1 and "ahora usa el 3" in cambios[0], cambios
+    assert inst["param"]["lado"] == 3
+    print("Al borrar un lado, los parciales que lo usaban pasan al primero que queda.")
 
 
 # ============================================================== ARCHIVO REAL

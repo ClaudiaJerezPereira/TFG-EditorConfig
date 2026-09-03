@@ -1,6 +1,7 @@
 """Base comun de los dialogos modales del editor."""
 import tkinter as tk
 
+from ...modelo.constantes import ID_MINIMO
 from ..apariencia import ALTO_MUESTRA, ANCHO_MUESTRA
 
 
@@ -29,7 +30,9 @@ class _DialogoBase(tk.Toplevel):
         for fila in catalogo:
             if fila[campo] == nombre:
                 return fila["id"]
-        return None if ninguno else (catalogo[0]["id"] if catalogo else 0)
+        # Sin catalogo se devuelve el ID minimo, no 0: el 0 no es un identificador
+        # valido en ninguna de las tablas y la base de datos rechazaria la clave ajena.
+        return None if ninguno else (catalogo[0]["id"] if catalogo else ID_MINIMO)
 
     @staticmethod
     def _entero(var, d=0):
@@ -45,7 +48,9 @@ class _DialogoBase(tk.Toplevel):
 
     def _lado_actual(self):
         """Lado del parcial que dibuja el elemento. El tono y la saturacion del fondo
-        salen siempre de ahi (Partido_Lado), no del propio elemento."""
+        salen siempre de ahi (Partido_Lado), no del propio elemento. Devuelve None si
+        el parcial no tiene lado o si el que tiene no esta en el catalogo, y entonces
+        la vista previa usa los colores de respaldo."""
         return next((l for l in getattr(self, "lados", [])
                      if l["id"] == getattr(self, "lado_parcial", None)), None)
 

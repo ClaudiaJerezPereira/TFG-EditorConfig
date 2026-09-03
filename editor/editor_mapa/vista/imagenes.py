@@ -1,10 +1,8 @@
 """Carga y cacheo de las imagenes que se dibujan (iconos y etiquetas graficas)."""
 from PIL import Image
 
-try:
-    RESAMPLE = Image.Resampling.LANCZOS
-except AttributeError:          # Pillow anterior a 9.1
-    RESAMPLE = Image.LANCZOS
+# Filtro de reescalado: el mejor de Pillow para reducir sin dientes de sierra.
+RESAMPLE = Image.Resampling.LANCZOS
 
 _CACHE = {}
 

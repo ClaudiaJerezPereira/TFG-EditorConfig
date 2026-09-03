@@ -81,12 +81,17 @@ Es lo que más veces ha cambiado, así que tiene sus propios bloques:
 
 ## Los catálogos
 
-- `prueba_modelo.py`, `prueba_ids_catalogos()`: los árbitros y los estilos no
-  admiten el ID `0` ni negativos, los lados sí conservan el `0` del lado común,
-  y un XML antiguo con identificadores inválidos se abre pero avisa.
+- `prueba_modelo.py`, `prueba_ids_catalogos()`: ninguno de los cuatro catálogos
+  admite el ID `0` ni negativos, los lados incluidos; se pueden definir los lados
+  que haga falta y con cualquier identificador (`1`, `7`, `42`, `547`); al borrar
+  un lado los parciales que lo usaban pasan al primero que queda; y un XML antiguo
+  con identificadores inválidos (por ejemplo con el viejo lado `0`) se abre pero
+  avisa.
+- `prueba_sql.py`: un partido con cuatro lados e identificadores sueltos se vuelca
+  sin errores ni avisos, y `Partido_Lado` no contiene ningún `0`.
 - `prueba_modelo.py`, `prueba_catalogos_en_el_xml()`: los cuatro catálogos viajan
-  en el XML, los totales generales se renumeran `1..N` al leerlos y un `VOLCAR`
-  guardado por una versión anterior se completa solo.
+  en el XML y vuelven igual que se guardaron, y los totales generales se renumeran
+  `1..N` al leerlos.
 - `prueba_sql.py`: los totales generales ocupan los primeros
   `ID_GRUPO_ACCIONES` y los grupos del editor empiezan detrás; al definir un
   total más, todos se corren un puesto.

@@ -43,36 +43,20 @@ MAX_ID_PARTIDO = 10
 # Holgura (px) para considerar que dos guias verticales ya son simetricas entre si.
 TOL_SIMETRIA = 3.0
 
-# Los catalogos del editor, en el orden en que se vuelcan.
-NOMBRES_CATALOGOS = ("totales", "lados", "arbitros", "estilos")
-
-# Catalogos que se vuelcan a la base de datos al exportar el SQL: todos.
-# Los LADOS tambien: aunque Partido_Lado pueda venir ya creada (por la base de datos
-# de partidos o por eurobot_DATOS.sql), sus nombres y sus colores son de la edicion,
-# asi que los pone el editor. Por eso su volcado es un INSERT ... ON DUPLICATE KEY
-# UPDATE: anade los lados que falten y actualiza los que ya esten, en vez de abortar
-# por clave repetida (ver sql_io.insert_lados). Lo mismo vale para los TOTALES
-# (General_Resultado), que tambien pueden venir de la base de datos de partidos.
-CATALOGOS_VOLCADOS = NOMBRES_CATALOGOS
-
-# Identificador minimo admitido en cada catalogo. El ID es la clave primaria de su
+# Identificador minimo admitido en los catalogos. El ID es la clave primaria de su
 # tabla (INT UNSIGNED) y tiene que empezar en 1: ni 0 ni negativo. No obliga a que el
-# primero sea el 1, solo a que ninguno baje de ahi.
+# primero sea el 1 ni a que vayan seguidos (un lado puede ser el 547): solo a que
+# ninguno baje de ahi.
 #
-# Los LADOS son la excepcion, y por eso el minimo va por catalogo y no en una sola
-# constante. No es que la tabla los cree otro script (desde que se vuelcan, los crea
-# este editor), sino que en Partido_Lado el 0 es un valor con significado propio:
-# FK_LADO = 0 marca los parciales "comunes", los de las acciones que puntuan a los dos
-# equipos, y 1 y 2 son los dos equipos del partido. Ese convenio esta grabado en la
-# aplicacion de arbitraje (las vistas filtran por FK_LADO = 1 y FK_LADO = 2) y en
-# Arbitraje_AuxEtiquetasPartido, asi que renumerar los lados romperia el partido.
-ID_MINIMO_CATALOGO = 1
-ID_MINIMO = {
-    "totales": ID_MINIMO_CATALOGO,
-    "lados": 0,
-    "arbitros": ID_MINIMO_CATALOGO,
-    "estilos": ID_MINIMO_CATALOGO,
-}
+# Los LADOS no son una excepcion. En Partido_Lado el numero es solo la clave primaria
+# de la fila: no identifica a un equipo concreto ni reserva el 0 para nada. Lo "comun"
+# (las acciones cuyo valor afecta a todos los lados, para que el arbitraje refresque
+# los parciales de todos y no solo el del equipo tocado) no es un lado, sino una marca
+# del grupo: Arbitraje_GrupoAcciones.comun, que se activa con la casilla «Común» del
+# dialogo del grupo. Por eso un partido puede tener los lados que haga falta (dos
+# equipos, o cuatro robots enfrentandose a la vez) y cualquiera de ellos puede
+# pertenecer a un grupo comun.
+ID_MINIMO = 1
 
 
 # Catalogos cuyo ID no se teclea: es la posicion en la lista, renumerada sola.

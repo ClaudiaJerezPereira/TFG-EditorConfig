@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import colorchooser, messagebox, simpledialog, ttk
 
-from ...modelo.constantes import ID_MINIMO_CATALOGO
+from ...modelo.constantes import ID_MINIMO
 from ..apariencia import FUENTE
 from ..fuentes import color_de_estilo, familias_disponibles, fuente_de_estilo
 from .base import _DialogoBase
@@ -39,8 +39,10 @@ class DialogoCatalogo(_DialogoBase):
 
     Con `muestra_fuente`, cada fila se previsualiza con su propia fuente.
 
-    `id_minimo` es el valor mas pequeno que admite la columna ID: por defecto 1,
-    porque es la clave primaria de la tabla y no puede ser ni 0 ni negativa.
+    `id_minimo` es el valor mas pequeno que admite la columna ID: 1 en los cuatro
+    catalogos, porque es la clave primaria de la tabla y no puede ser ni 0 ni
+    negativa. No obliga a que los identificadores vayan seguidos: un lado puede ser
+    el 1 o el 547.
 
     Con `id_automatico` el ID no se teclea: es la posicion en la lista y se renumera
     solo al anadir, eliminar o mover una fila. Lo usan los catalogos cuyos
@@ -49,7 +51,7 @@ class DialogoCatalogo(_DialogoBase):
     """
 
     def __init__(self, padre, titulo, columnas, filas, muestra_fuente=False,
-                 id_minimo=ID_MINIMO_CATALOGO, id_automatico=False):
+                 id_minimo=ID_MINIMO, id_automatico=False):
         super().__init__(padre)
         self.title(titulo)
         self.resultado = None
@@ -307,8 +309,7 @@ class DialogoCatalogo(_DialogoBase):
         if entero is None or entero < self.id_minimo:
             messagebox.showwarning(
                 "Identificador no válido",
-                f"El ID {valor} no vale. El ID es la clave primaria de la tabla "
-                f"(INT UNSIGNED), así que tiene que ser un entero de "
+                f"El ID {valor} no vale. Tiene que ser un entero de "
                 f"{self.id_minimo} en adelante: ni 0 ni negativo.", parent=self)
             return False
         return True
@@ -389,8 +390,9 @@ def menu_catalogos(padre, al_elegir):
                       "identificadores de grupo. Los grupos que \n"
                       "dibujes comienzan justo después y cambian de \n"
                       "posición si añades otro total.\n\n"
-                      "En los lados, el ID 0 es el lado común (acciones\n"
-                      "que puntúan a los dos equipos).",
+                      "En los cuatro, el ID empieza en 1 y no tiene que\n"
+                      "ir seguido. Puedes definir tantos lados como\n"
+                      "equipos o robots se enfrenten a la vez.",
               foreground="#666", justify="left").pack(anchor="w", pady=(6, 0))
     ttk.Button(m, text="Cerrar", command=menu.destroy).pack(pady=(10, 0))
     menu.grab_set()

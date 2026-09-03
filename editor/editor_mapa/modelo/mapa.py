@@ -149,7 +149,7 @@ class ModeloMapa:
         estilos = {e["id"] for e in self.catalogos.estilos}
         lados = {l["id"] for l in self.catalogos.lados}
         estilo_def = self.estilo_defecto()
-        lado_def = 0 if 0 in lados else (min(lados) if lados else 0)
+        lado_def = self.catalogos.lado_defecto()
 
         for i in self.instancias:
             p = i.setdefault("param", {})
@@ -222,8 +222,11 @@ class ModeloMapa:
         # mostrar_puntos: la geometria y el estilo son del grupo
         # (Arbitraje_TotalGrupoAcciones), para que todos los parciales la dibujen
         # igual y en la misma posicion relativa.
-        return {"lado": 0, "arbitro": None, "valor_defecto": 0, "color_v": 255,
-                "mostrar_puntos": True}
+        # El lado de partida es el primero del catalogo (FK_LADO no admite nulo y el
+        # 0 ya no es un identificador valido); luego se elige en el dialogo del
+        # parcial.
+        return {"lado": self.catalogos.lado_defecto(), "arbitro": None,
+                "valor_defecto": 0, "color_v": 255, "mostrar_puntos": True}
 
     # ---------------------------------------------------------------- SELECCION
     def seleccionar(self, clase, ident):
@@ -536,35 +539,16 @@ class ModeloMapa:
         gk["rel"] = float(rel)
         return self.sincronizar_total(gk)
 
-    def guia_cero(self, tipo, orient):
-        """Eje del origen del grupo: la guia de control que esta a distancia 0. La
-        crea `crear_grupo` y el resto del programa da por hecho que existe (el
-        generador de SQL la usa para la geometria degenerada del total)."""
-        return next((g for g in self.guias_ctrl_tipo(tipo, orient)
-                     if g.get("cero")), None)
-
     def es_guia_cero(self, ident):
         """Las guias cero no se mueven ni se borran: su posicion no es un dato libre,
         es el origen. El origen se mueve moviendo su guia de colocacion."""
         g = self.guia_ctrl(ident)
         return bool(g and g.get("cero"))
 
-    def garantizar_guias_cero(self):
-        """Cada grupo necesita sus dos ejes. Repara los mapas guardados antes de que
-        las guias cero fueran intocables, donde pudieron moverse o borrarse."""
-        arreglados = []
-        for t in self.tipos:
-            for orient in ("v", "h"):
-                if self.guia_cero(t["id"], orient) is not None:
-                    continue
-                ident = self.guia_ctrl_en(t["id"], orient, 0.0)
-                self.guia_ctrl(ident)["cero"] = True
-                arreglados.append(t["nombre"])
-        return sorted(set(arreglados))
-
     def guia_ctrl_en(self, tipo, orient, rel):
-        """Guia de control del grupo a esa distancia del origen; si no existe, la crea.
-        Se usa al convertir configuraciones antiguas."""
+        """Guia de control del grupo a esa distancia del origen; si no existe, la
+        crea. Es la forma de colocar un elemento sin tener que buscar antes sus
+        guias: se piden por distancia y aparecen si faltan."""
         for g in self.guias_ctrl_tipo(tipo, orient):
             if abs(g["rel"] - rel) < 1e-6:
                 return g["id"]
@@ -645,7 +629,10 @@ class ModeloMapa:
         return c
 
     def contenido_total(self):
-        return {"modo": "texto", "valor": TEXTO_TOTAL, "tam": None}
+        """El total se dibuja como una etiqueta de texto fijo, asi que su contenido
+        tiene la misma forma que el de una etiqueta (externa, tipo, valor): asi la
+        vista lo pinta con el mismo codigo, sin distinguir de que clase es."""
+        return {"externa": False, "tipo": 1, "valor": TEXTO_TOTAL, "tam": None}
 
     # ------------------------------------------------------------------- ELIMINAR
     def eliminar_guia_col(self, ident):

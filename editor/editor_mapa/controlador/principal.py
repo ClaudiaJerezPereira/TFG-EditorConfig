@@ -537,11 +537,11 @@ class Controlador:
     def _editar_catalogo(self, cual):
         titulo, columnas = CATALOGOS[cual]
         actual = getattr(self.modelo.catalogos, cual)
-        # El ID minimo lo decide el catalogo (ID_MINIMO en modelo/constantes.py): en
-        # los que crea el editor es 1, porque es la clave primaria de la tabla.
+        # El ID minimo es el mismo en los cuatro catalogos (ID_MINIMO en
+        # modelo/constantes.py): 1, porque es la clave primaria de la tabla.
         r = DialogoCatalogo(self.root, titulo, columnas, actual,
                             muestra_fuente=(cual == "estilos"),
-                            id_minimo=ID_MINIMO[cual],
+                            id_minimo=ID_MINIMO,
                             id_automatico=(cual in CATALOGOS_ID_AUTOMATICO)).resultado
         if r is None:
             return
@@ -655,7 +655,7 @@ class Controlador:
                                  contenido=m.contenido_etiqueta(),
                                  estilos=m.catalogos.estilos, lados=m.catalogos.lados,
                                  tam_control=(ancho, alto),
-                                 lado_parcial=inst.get("param", {}).get("lado", 0),
+                                 lado_parcial=inst.get("param", {}).get("lado"),
                                  ruta_grafico=m.ruta_grafico,
                                  carpeta_graficos=m.carpeta_graficos).resultado
             if r is None:
@@ -667,7 +667,7 @@ class Controlador:
                               estilos=m.catalogos.estilos,
                               tam_control=(ancho, alto),
                               lados=m.catalogos.lados,
-                              lado_parcial=pz.get("lado", 0),
+                              lado_parcial=pz.get("lado"),
                               color_v=pz.get("color_v", 255),
                               ruta_grafico=m.ruta_grafico,
                               carpeta_graficos=m.carpeta_graficos).resultado
@@ -999,7 +999,7 @@ class Controlador:
                                  nombre=c.get("nombre", ""), param=param,
                                  estilos=m.catalogos.estilos, lados=m.catalogos.lados,
                                  tam_control=m.tam_control(c),
-                                 lado_parcial=(inst or {}).get("param", {}).get("lado", 0),
+                                 lado_parcial=(inst or {}).get("param", {}).get("lado"),
                                  ruta_grafico=m.ruta_grafico,
                                  carpeta_graficos=m.carpeta_graficos).resultado
         else:
@@ -1010,7 +1010,7 @@ class Controlador:
                               estilos=m.catalogos.estilos, contenido=c["contenido"],
                               tam_control=m.tam_control(c),
                               lados=m.catalogos.lados,
-                              lado_parcial=pz.get("lado", 0),
+                              lado_parcial=pz.get("lado"),
                               color_v=pz.get("color_v", 255),
                               ruta_grafico=m.ruta_grafico,
                               carpeta_graficos=m.carpeta_graficos).resultado

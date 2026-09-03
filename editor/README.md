@@ -102,17 +102,23 @@ el resto del script:
 | Catálogo | Tabla | ID |
 |---|---|---|
 | Totales generales | `General_Resultado` | automático, `1..N` sin huecos |
-| Lados | `Partido_Lado` | desde `0` |
+| Lados | `Partido_Lado` | desde `1` |
 | Árbitros | `Arbitraje_ListaArbitros` | desde `1` |
 | Estilos de fuente | `Arbitraje_EstiloFuente` | desde `1` |
 
 El ID es la clave primaria de su tabla (`INT UNSIGNED`), así que no admite ni el
-`0` ni los negativos. La única excepción son los **lados**: en `Partido_Lado` el
-número significa algo por sí mismo (`0` es el lado común, el de las acciones que
-puntúan a los dos equipos, y `1` y `2` son los dos equipos del partido), y ese
-convenio lo dan por hecho `Arbitraje_AuxEtiquetasPartido` y la aplicación de
-arbitraje. El mínimo de cada catálogo está en `ID_MINIMO`, en
-`modelo/constantes.py`.
+`0` ni los negativos: el mínimo, el mismo para los cuatro catálogos, es `ID_MINIMO`
+en `modelo/constantes.py`. No tiene que empezar por el `1` ni ir seguido: un lado
+puede llevar el `547`.
+
+Los **lados** tampoco son una excepción. En `Partido_Lado` el número es sólo la
+clave primaria de la fila: no identifica a un equipo concreto y no hay ningún valor
+reservado. Lo **común** —las acciones cuyo valor afecta a todos los lados, para que
+el arbitraje refresque los parciales de todos y no sólo el del equipo tocado— no es
+un lado, sino una marca del grupo: `Arbitraje_GrupoAcciones.comun`, la casilla
+«Común» de los diálogos de grupo y de parcial. Por eso el catálogo admite tantos
+lados como haga falta: los dos equipos del partido habitual, o cuatro si se
+enfrentan cuatro robots a la vez.
 
 En los **totales generales** el ID ni siquiera se teclea: es la posición en la
 lista, y se renumera solo al añadir, borrar o reordenar filas (botones «Subir» y

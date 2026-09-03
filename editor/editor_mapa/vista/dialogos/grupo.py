@@ -31,7 +31,7 @@ class DialogoGrupo(_DialogoBase):
                   ).grid(row=0, column=0, sticky="w")
         e = ttk.Entry(m, textvariable=self.var_nombre, width=30)
         e.grid(row=1, column=0, sticky="we", pady=(4, 8))
-        ttk.Checkbutton(m, text="Común (el valor de un lado afecta a ambos lados)",
+        ttk.Checkbutton(m, text="Común (el valor de un lado afecta a todos los lados)",
                         variable=self.var_comun).grid(row=2, column=0, sticky="w")
         ttk.Label(m, text="Un grupo puede llevar botones y etiquetas; el total es\n"
                           "común a todo el mapa.",

@@ -2,11 +2,10 @@
 
 Nada de esto pertenece al dominio: son decisiones de como se ve el editor.
 """
-import tkinter as tk
 from tkinter import ttk
 
-# ttk.Spinbox solo existe desde Tk 8.6 / Python 3.7; si no, se usa el clasico.
-Spin = getattr(ttk, "Spinbox", tk.Spinbox)
+# Alias corto: los dialogos lo usan para los campos numericos.
+Spin = ttk.Spinbox
 
 FUENTE = "Arial"
 MARGEN_CRUCE = 10   # margen en pixeles de PANTALLA para "enganchar" un clic a un cruce
@@ -52,7 +51,6 @@ COL_MARCA_BOOL = "#1a7f37"
 ANCHO_MUESTRA = 220
 ALTO_MUESTRA = 140
 
-# Textos de la barra de estado segun el modo activo.
 # Textos de la barra de estado segun el modo activo.
 ESTADO_MODO = {
     "grupo":    ("MODO GRUPO: selecciona/mueve guías de colocación (rojas) y orígenes. "

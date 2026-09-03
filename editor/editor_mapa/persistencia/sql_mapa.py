@@ -70,6 +70,19 @@ def _nulo(v):
     return "NULL" if v is None else str(int(v))
 
 
+def _lado(m, inst):
+    """FK_LADO de un parcial (Arbitraje_ZonaAcciones).
+
+    La columna no admite nulo y el ID de un lado ya no puede ser 0, asi que un
+    parcial sin lado (o con uno que se ha borrado del catalogo) se vuelca con el
+    primero que haya. Si el lado no esta en el catalogo, _revisar() lo avisa aparte.
+    """
+    lado = inst.get("param", {}).get("lado")
+    if lado is None:
+        return int(m.catalogos.lado_defecto())
+    return int(lado)
+
+
 class Identificadores:
     """Asigna los identificadores de la base de datos a partir del modelo.
 
@@ -133,7 +146,7 @@ class Identificadores:
                 else:
                     n += 1
                     ident = n
-                lado = inst.get("param", {}).get("lado", 0)
+                lado = _lado(m, inst)
                 if (ident, lado) in usados:
                     # Dos parciales del mismo grupo, mismo lado y mismo ID: la base
                     # de datos los rechazaria, asi que se le da uno nuevo.
@@ -394,7 +407,7 @@ def insert_zonas(m, ids):
             grupo_ant = t["id"]
             filas.append(
                 f'    ({ids.zona[inst["id"]]:3d}, {ids.grupo[t["id"]]:3d}, '
-                f'{int(p.get("lado", 0)):2d}, {_nulo(p.get("arbitro")):>4}, '
+                f'{_lado(m, inst):2d}, {_nulo(p.get("arbitro")):>4}, '
                 f'{texto_sql(inst.get("nombre", "")):<{an_zona}}, '
                 f'{int(p.get("valor_defecto", 0)):4d}, '
                 f'{_bool(inst.get("inv"))}, '
@@ -469,9 +482,6 @@ def insert_etiquetas(m, ids, avisos):
 # ==================================================================== SCRIPT
 def script_edicion(m):
     """Script completo de datos de la edicion. Devuelve (texto, avisos)."""
-    # Cada grupo necesita sus dos ejes del origen: son la referencia de todas sus
-    # guias de control y el resto del programa las da por hechas.
-    m.garantizar_guias_cero()
     # La base de datos define la etiqueta del total con guias de control de cada
     # grupo, pero en el editor es un rectangulo unico: aqui se crean las guias que
     # falten, antes de repartir los identificadores.
@@ -494,14 +504,10 @@ def script_edicion(m):
         "",
     ]
     cuerpo = []
-    if "totales" in m.catalogos.volcar:
-        cuerpo += insert_totales(m.catalogos.totales) + [""]
-    if "lados" in m.catalogos.volcar:
-        cuerpo += insert_lados(m.catalogos.lados) + [""]
-    if "arbitros" in m.catalogos.volcar:
-        cuerpo += insert_arbitros(m.catalogos.arbitros) + [""]
-    if "estilos" in m.catalogos.volcar:
-        cuerpo += insert_estilos(m.catalogos.estilos) + [""]
+    cuerpo += insert_totales(m.catalogos.totales) + [""]
+    cuerpo += insert_lados(m.catalogos.lados) + [""]
+    cuerpo += insert_arbitros(m.catalogos.arbitros) + [""]
+    cuerpo += insert_estilos(m.catalogos.estilos) + [""]
     cuerpo += insert_grupos(m, ids) + [""]
     cuerpo += insert_guias_grupo(m, ids)
     cuerpo += insert_guias_control(m, ids)
