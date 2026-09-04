@@ -4,18 +4,41 @@ START TRANSACTION;
 -- Se ejecuta después de eurobot_ACCIONES.sql (estructura) y de
 -- eurobot_DATOS.sql (datos comunes a todas las ediciones).
 --
--- Los LADOS (Partido_Lado) no se vuelcan aquí: los crea eurobot_DATOS.sql,
--- porque son los mismos todos los años. El editor los guarda en el XML solo
--- para conocer sus colores al dibujar.
+-- Los cuatro catálogos se vuelcan aquí. General_Resultado y Partido_Lado van con
+-- ON DUPLICATE KEY UPDATE porque la tabla puede venir ya creada y con datos
+-- (la trae la base de datos de partidos, o eurobot_DATOS.sql en la
+-- construcción autónoma): así se añaden los lados que falten y se actualizan
+-- el nombre y el color de los que ya estén, que es lo que cambia cada año.
+
+###############################################################################
+INSERT INTO General_Resultado (
+        ID_RESULTADO,
+        nombre) VALUES
+    (  1, 'TOTAL PUNTOS'),
+    (  2, 'Total robot')
+    ON DUPLICATE KEY UPDATE
+        nombre = VALUES(nombre);
+
+###############################################################################
+INSERT INTO Partido_Lado (
+        ID_LADO,
+        nombre,
+        color_h,
+        color_s) VALUES
+    (  1, 'Amarillo'  , 0.122, 0.919),
+    (  2, 'Azul'      , 0.559, 0.519)
+    ON DUPLICATE KEY UPDATE
+        nombre  = VALUES(nombre),
+        color_h = VALUES(color_h),
+        color_s = VALUES(color_s);
 
 ###############################################################################
 INSERT INTO Arbitraje_ListaArbitros (
         ID_ARBITRO,
         nombre,
         descripcion) VALUES
-    (0, 'Pepe', 'Arbitro amarillo'),
-    (1, 'Juan', 'Arbitro azul'),
-    (2, 'Carol', 'Arbitro verde');
+    (1, 'Juan', 'equipo amarillo'),
+    (2, 'Carol', 'equipo azul');
 
 ###############################################################################
 INSERT INTO Arbitraje_EstiloFuente (
@@ -25,69 +48,74 @@ INSERT INTO Arbitraje_EstiloFuente (
         estilo_fuente,
         tamano_fuente,
         color_fuente) VALUES
-    (  0, 'Normal'      , 'Arial'           , 'bold'  ,   20, '#000000'),
-    (  1, 'Negrita'     , 'Elephant'        , 'bolditalic',   25, '#870c78'),
-    (  2, 'Azul'        , 'Terminal'        , 'underline',   23, '#00ffff');
+    (  1, 'Normal'      , 'Arial'           , 'bold'  ,   20, '#000000'),
+    (  2, 'Fina'        , 'Ink Free'        , 'underline',   27, '#f5010a');
 
 ###############################################################################
--- Los grupos 1..3 son los totales generales, y se copian de
--- General_Resultado para que existan sus identificadores.
+-- Los primeros grupos son los totales generales (General_Resultado):
+-- reservan los identificadores 1..2 y los grupos
+-- del editor empiezan justo después.
 INSERT INTO Arbitraje_GrupoAcciones (
         ID_GRUPO_ACCIONES,
-        nombre)
-    SELECT ID_RESULTADO, nombre
-      FROM General_Resultado;
+        nombre) VALUES
+    (  1, 'TOTAL PUNTOS'),
+    (  2, 'Total robot' );
 
 -- Y después, los grupos definidos con el editor.
 INSERT INTO Arbitraje_GrupoAcciones (
         ID_GRUPO_ACCIONES,
         nombre,
         comun) VALUES
-    (  4, 'Despensa', FALSE),
-    (  5, 'Nido'    , TRUE );
+    (  3, 'Nido'    , FALSE),
+    (  4, 'Despensa', FALSE);
 
 
 ###############################################################################
 INSERT INTO Guia_GrupoX (
         ID_GUIA,
         posicion) VALUES
-    (  1,   500),
-    (  2,  1415);
+    (  1,   462),
+    (  2,   500),
+    (  3,   501),
+    (  4,   726),
+    (  5,  1194),
+    (  6,  1419),
+    (  7,  1420),
+    (  8,  1458);
 
 ###############################################################################
 INSERT INTO Guia_GrupoY (
         ID_GUIA,
         posicion) VALUES
-    (  1,   206),
-    (  2,   607);
+    (  1,   207),
+    (  2,   574);
 
 ###############################################################################
 INSERT INTO Guia_ControlX (
         FK_GRUPO_ACCIONES,
         ID_GUIA,
         posicion) VALUES
-    (  4,   1,  -128),
-    (  4,   2,     0),
-    (  4,   3,   172),
+    (  3,   1,   -81),
+    (  3,   2,     0),
+    (  3,   3,   117),
 
-    (  5,   1,  -142),
-    (  5,   2,  -128),
-    (  5,   3,     0),
-    (  5,   4,   158);
+    (  4,   1,   -81),
+    (  4,   2,     0),
+    (  4,   3,   111);
 
 ###############################################################################
 INSERT INTO Guia_ControlY (
         FK_GRUPO_ACCIONES,
         ID_GUIA,
         posicion) VALUES
-    (  4,   1,   -79),
-    (  4,   2,     0),
-    (  4,   3,   150),
+    (  3,   1,     0),
+    (  3,   2,    77),
+    (  3,   3,   148),
 
-    (  5,   1,  -125),
-    (  5,   2,   -79),
-    (  5,   3,     0),
-    (  5,   4,   152);
+    (  4,   1,   -97),
+    (  4,   2,     0),
+    (  4,   3,    77),
+    (  4,   4,   178);
 
 ###############################################################################
 -- Etiqueta con el total de puntos (Arbitraje_TotalGrupoAcciones): una
@@ -101,8 +129,8 @@ INSERT INTO Arbitraje_TotalGrupoAcciones (
         FK_GUIA_Y1,
         FK_GUIA_Y2,
         zona_d) VALUES
-    (  4,  2,   1,   2,   1,   2, -13),    # Despensa
-    (  5,  0,   2,   3,   2,   3,   0);    # Nido
+    (  3,  1,   1,   2,   1,   2,   0),    # Nido
+    (  4,  1,   1,   2,   2,   3,   0);    # Despensa
 
 ###############################################################################
 INSERT INTO Arbitraje_TipoAcciones (
@@ -120,10 +148,9 @@ INSERT INTO Arbitraje_TipoAcciones (
         FK_GUIA_Y1,
         FK_GUIA_Y2,
         tipo_d) VALUES
-    (  1,   4,  1,  1, TRUE ,  128, ''  , ''          , 'botón de click',   2,   3,   2,   3,  20),
-    (  2,   4,  0,  3, TRUE , NULL, 'n' , 'Robot1.png', 'botón de bool' ,   1,   2,   2,   3,  11),
+    (  1,   3,  1,  4, TRUE , NULL, ''  , 'Robot1.png', 'Gráfico robot.'               ,   2,   3,   1,   2,   0),
 
-    (  1,   5,  1,  2, TRUE ,   34, ''  , ''          , 'botón texto'   ,   3,   4,   3,   4, -12);
+    (  1,   4,  1,  1, TRUE ,  100, ''  , ''          , 'Botón click de las despensas.',   2,   3,   1,   2,   0);
 
 ###############################################################################
 -- mostrar_puntos dice si ESTA zona dibuja la etiqueta del total; dónde y
@@ -140,11 +167,13 @@ INSERT INTO Arbitraje_ZonaAcciones (
         FK_OFFSET_Y,
         mostrar_puntos,
         color_v) VALUES
-    (  1,   4,  2,    2, 'Despensa 1',   12, FALSE,   1,   1, TRUE ,  212),
-    (  2,   4,  1,    0, 'Despensa 2',   45, TRUE ,   2,   2, TRUE ,  124),
+    (  1,   3,  1,    1, 'Nido 1'             ,    0, FALSE,   1,   1, TRUE ,  255),
+    (  1,   3,  2,    2, 'Nido 1 (espejo)'    ,    0, TRUE ,   8,   1, TRUE ,  255),
 
-    (  1,   5,  2,    1, 'Nido 1'    ,    0, FALSE,   2,   1, FALSE,  255),
-    (  2,   5,  0, NULL, 'Nido 2'    ,    0, FALSE,   1,   2, TRUE ,  255);
+    (  1,   4,  1,    1, 'Despensa 1'         ,    0, FALSE,   3,   2, TRUE ,  255),
+    (  2,   4,  1,    1, 'Despensa 2'         ,    0, TRUE ,   4,   2, TRUE ,  255),
+    (  1,   4,  2,    2, 'Despensa 1 (espejo)',    0, TRUE ,   6,   2, TRUE ,  255),
+    (  2,   4,  2,    2, 'Despensa 2 (espejo)',    0, FALSE,   5,   2, TRUE ,  255);
 
 ###############################################################################
 -- Etiquetas (Arbitraje_Etiqueta): texto o imagen que se dibuja en cada
@@ -165,9 +194,6 @@ INSERT INTO Arbitraje_Etiqueta (
         etiqueta_d,
         color_v,
         justificacion) VALUES
-    (  1,   4,  0,   2,   3,   1,   2, FALSE,  2, 'Robot2.png',   0,  255, 'c'),    # EtiquetaImagen
-
-    (  1,   5,  1,   3,   4,   1,   3, TRUE ,  1, 'DORSAL'    , -14,   75, 'c'),    # EtiquetaExterna
-    (  2,   5,  0,   1,   3,   3,   4, FALSE,  1, 'equipos'   ,  20,  221, 'e');    # EtiquetaTexto
+    (  1,   4,  1,   1,   2,   1,   2, FALSE,  1, 'Partido',   0,  255, 'c');    # Despensa2
 
 COMMIT;
