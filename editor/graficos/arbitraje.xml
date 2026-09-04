@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+<arbitraje>
+    <!-- Imagen del campo de juego -->
+    <mapa RUTA="C:/Users/claud/Escritorio/TFG/TFG-main/editor/graficos/fondo.png" />
+    <!-- Simetria horizontal: si esta activa, cada guia vertical y cada parcial tienen su pareja al otro lado del eje. Los elementos con ESPEJO="1" los ha creado la simetria -->
+    <simetria ACTIVA="1" EJE="960" />
+    <!-- Catalogos: tablas de referencia (General_Resultado, Partido_Lado, Arbitraje_ListaArbitros, Arbitraje_EstiloFuente). Los cuatro se exportan a SQL. Los <resultado> son los totales generales, y reservan los primeros ID_GRUPO_ACCIONES -->
+    <catalogos>
+        <resultado ID="1" NOMBRE="TOTAL PUNTOS" />
+        <resultado ID="2" NOMBRE="Total robot" />
+        <lado ID="1" NOMBRE="Amarillo" COLOR_H="0.12" COLOR_S="0.92" />
+        <lado ID="2" NOMBRE="Azul" COLOR_H="0.56" COLOR_S="0.52" />
+        <arbitro ID="1" NOMBRE="Juan" DESCRIPCION="equipo amarillo" />
+        <arbitro ID="2" NOMBRE="Carol" DESCRIPCION="equipo azul" />
+        <estilo ID="1" DESCRIPCION="Normal" NOMBRE_FUENTE="Arial" ESTILO_FUENTE="bold" TAMANO_FUENTE="20" COLOR_FUENTE="#000000" />
+        <estilo ID="2" DESCRIPCION="Fina" NOMBRE_FUENTE="Ink Free" ESTILO_FUENTE="underline" TAMANO_FUENTE="27" COLOR_FUENTE="#f5010a" />
+    </catalogos>
+    <!-- Guias de grupo horizontales: nombre y coordenada "y" -->
+    <horizontal NOMBRE="GH1" POSICION="207.13" />
+    <horizontal NOMBRE="GH2" POSICION="573.64" />
+    <!-- Guias de grupo verticales: nombre y coordenada "x" -->
+    <vertical NOMBRE="GV1" POSICION="461.86" />
+    <vertical NOMBRE="GV2" POSICION="499.86" />
+    <vertical NOMBRE="GV3" POSICION="501.08" />
+    <vertical NOMBRE="GV4" POSICION="725.53" />
+    <vertical NOMBRE="GV5" POSICION="1194.47" ESPEJO="1" />
+    <vertical NOMBRE="GV6" POSICION="1418.92" ESPEJO="1" />
+    <vertical NOMBRE="GV7" POSICION="1420.14" ESPEJO="1" />
+    <vertical NOMBRE="GV8" POSICION="1458.14" ESPEJO="1" />
+    <!-- Grupos (Arbitraje_GrupoAcciones): guias propias y los elementos que contienen (botones, etiquetas y total) -->
+    <grupo NOMBRE="Nido" COMUN="0" TOTAL_ESTILO="1" TOTAL_D="0">
+        <horizontal NOMBRE="CH0" POSICION="0" />
+        <horizontal NOMBRE="CH1" POSICION="77.36" />
+        <horizontal NOMBRE="CH2" POSICION="147.52" />
+        <vertical NOMBRE="CV1" POSICION="-81.42" />
+        <vertical NOMBRE="CV0" POSICION="0" />
+        <vertical NOMBRE="CV2" POSICION="117.23" />
+        <control NOMBRE="Nido1" X1="CV0" X2="CV2" Y1="CH0" Y2="CH1" CLASE="boton" TIPO_ACCION="graf" ACCION="Gráfico robot." ESTILO="1" PUBLICAR="1" VALOR_MAXIMO="" IMG_POS="" DIRECTORIO="Robot1.png" DESPLAZAMIENTO="0" VALOR_MUESTRA="0" />
+    </grupo>
+    <grupo NOMBRE="Despensa" COMUN="0" TOTAL_ESTILO="1" TOTAL_D="0">
+        <horizontal NOMBRE="CH1" POSICION="-96.62" />
+        <horizontal NOMBRE="CH0" POSICION="0" />
+        <horizontal NOMBRE="CH2" POSICION="77.36" />
+        <horizontal NOMBRE="CH3" POSICION="177.73" />
+        <vertical NOMBRE="CV1" POSICION="-81.42" />
+        <vertical NOMBRE="CV0" POSICION="0" />
+        <vertical NOMBRE="CV2" POSICION="110.82" />
+        <control NOMBRE="Despensa1" X1="CV0" X2="CV2" Y1="CH1" Y2="CH0" CLASE="boton" TIPO_ACCION="click" ACCION="Botón click de las despensas." ESTILO="1" PUBLICAR="1" VALOR_MAXIMO="100" IMG_POS="" DIRECTORIO="" DESPLAZAMIENTO="0" VALOR_MUESTRA="8" />
+        <control NOMBRE="Despensa2" X1="CV1" X2="CV0" Y1="CH1" Y2="CH0" CLASE="etiqueta" EXTERNA="0" TIPO="1" VALOR="Partido" ESTILO="1" JUSTIFICACION="c" COLOR_V="255" DESPLAZAMIENTO="0" />
+    </grupo>
+    <!-- Etiqueta con el total de puntos: la misma para todos los grupos (X, Y, W, H respecto al origen de cada uno). Cada parcial solo decide si la muestra -->
+    <total NOMBRE="Total" X="-81.42" Y="0" W="81.42" H="77.36" />
+    <!-- Parciales (Arbitraje_ZonaAcciones): colocacion de un grupo sobre la imagen. X e Y son las guias de grupo que hacen de origen (offset_x/offset_y). De la etiqueta del total, el parcial solo guarda MOSTRAR_PUNTOS: su geometria es la del elemento <total>, y su letra y su desplazamiento son del grupo -->
+    <parcial NOMBRE="Nido 1" GRUPO="Nido" X="GV1" Y="GH1" REFLEJADO="0" LADO="1" VALOR_DEFECTO="0" COLOR_V="255" MOSTRAR_PUNTOS="1" ARBITRO="1" />
+    <parcial NOMBRE="Despensa 1" GRUPO="Despensa" X="GV3" Y="GH2" REFLEJADO="0" LADO="1" VALOR_DEFECTO="0" COLOR_V="255" MOSTRAR_PUNTOS="1" ARBITRO="1" />
+    <parcial NOMBRE="Despensa 2" GRUPO="Despensa" X="GV4" Y="GH2" REFLEJADO="1" LADO="1" VALOR_DEFECTO="0" COLOR_V="255" MOSTRAR_PUNTOS="1" ARBITRO="1" />
+    <parcial NOMBRE="Nido 1 (espejo)" GRUPO="Nido" X="GV8" Y="GH1" REFLEJADO="1" LADO="2" VALOR_DEFECTO="0" COLOR_V="255" MOSTRAR_PUNTOS="1" ARBITRO="2" ESPEJO="1" />
+    <parcial NOMBRE="Despensa 1 (espejo)" GRUPO="Despensa" X="GV6" Y="GH2" REFLEJADO="1" LADO="2" VALOR_DEFECTO="0" COLOR_V="255" MOSTRAR_PUNTOS="1" ARBITRO="2" ESPEJO="1" />
+    <parcial NOMBRE="Despensa 2 (espejo)" GRUPO="Despensa" X="GV5" Y="GH2" REFLEJADO="0" LADO="2" VALOR_DEFECTO="0" COLOR_V="255" MOSTRAR_PUNTOS="1" ARBITRO="2" ESPEJO="1" />
+</arbitraje>
