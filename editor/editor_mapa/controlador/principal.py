@@ -17,6 +17,7 @@ from ..vista.apariencia import MARGEN_CRUCE, MODOS_DIBUJO, NOMBRE_CLASE
 from ..vista.dialogos import (DialogoAccion, DialogoCatalogo, DialogoContenido,
                               DialogoGrupo, DialogoTotal, DialogoZona)
 from ..vista.dialogos.catalogo import ESTILOS_FUENTE
+from ..vista.imagenes import FORMATOS_IMAGEN, TIPOS_IMAGEN, extension_admitida
 from ..vista.ventana import VentanaPrincipal
 
 # Atajos de teclado de cada modo. La "t" ya estaba cogida por Etiqueta, asi que el
@@ -207,9 +208,14 @@ class Controlador:
     # ------------------------------------------------------------ MAPA Y ARCHIVOS
     def cargar_mapa(self):
         ruta = filedialog.askopenfilename(
-            title="Selecciona la imagen del campo",
-            filetypes=[("Imágenes", "*.png *.jpg *.jpeg *.gif *.bmp"), ("Todos", "*.*")])
+            title="Selecciona la imagen del campo", filetypes=TIPOS_IMAGEN)
         if not ruta:
+            return
+        if not extension_admitida(ruta):
+            messagebox.showwarning(
+                "Formato no admitido",
+                f"«{os.path.basename(ruta)}» no es una imagen {FORMATOS_IMAGEN}.\n\n"
+                f"La imagen del campo tiene que ser un archivo .png, .jpg o .jpeg.")
             return
         try:
             img = Image.open(ruta)
@@ -261,7 +267,13 @@ class Controlador:
         ruta_mapa, errores = xml_io.cargar(self.modelo, raiz)
         self.ruta_xml = ruta
 
-        # La imagen del campo se recupera si sigue estando donde se guardo.
+        # La imagen del campo se recupera si sigue estando donde se guardo. Si es de
+        # un formato que ya no se admite se carga igual (el archivo es anterior al
+        # limite y no se le va a romper el trabajo), pero se avisa.
+        if ruta_mapa and not extension_admitida(ruta_mapa):
+            errores.append(f"La imagen del campo «{os.path.basename(ruta_mapa)}» no es "
+                           f"{FORMATOS_IMAGEN}. Vuelve a cargarla en uno de esos dos "
+                           f"formatos.")
         if ruta_mapa and os.path.exists(ruta_mapa):
             try:
                 img = Image.open(ruta_mapa)
