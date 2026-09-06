@@ -12,7 +12,7 @@ from ..apariencia import (ALTO_MUESTRA, ANCHO_MUESTRA, COL_BOTON, COL_MARCA_BOOL
                           FUENTE, IMG_POS_ETIQUETA, MARCA_BOOL, Spin as _Spin)
 from ..fuentes import (cabe_texto, color_de_estilo, familia_valida, fuente_de_estilo,
                        rasgos_de_estilo, tam_automatico)
-from ..imagenes import RESAMPLE
+from ..imagenes import FORMATOS_IMAGEN, RESAMPLE, TIPOS_IMAGEN, extension_admitida
 from .base import _DialogoBase
 
 
@@ -320,8 +320,15 @@ class DialogoAccion(_DialogoBase):
         carpeta = self._carpeta()
         ruta = filedialog.askopenfilename(
             parent=self, title="Icono del control", initialdir=carpeta,
-            filetypes=[("PNG", "*.png"), ("Todos", "*.*")])
+            filetypes=TIPOS_IMAGEN)
         if not ruta:
+            return
+        if not extension_admitida(ruta):
+            messagebox.showwarning(
+                "Formato no admitido",
+                f"«{os.path.basename(ruta)}» no es una imagen {FORMATOS_IMAGEN}.\n\n"
+                f"El icono del control tiene que ser un archivo .png, .jpg o .jpeg.",
+                parent=self)
             return
         if os.path.normcase(os.path.dirname(os.path.abspath(ruta))) != \
                 os.path.normcase(os.path.abspath(carpeta)):
@@ -348,6 +355,14 @@ class DialogoAccion(_DialogoBase):
                                    "Debe ser un número entero, o vacío para 'sin límite'.",
                                    parent=self)
             return
+        # Solo el nombre, aunque el campo traiga una ruta de un archivo antiguo.
+        icono = os.path.basename(self.var_dir.get().strip())
+        if icono and not extension_admitida(icono):
+            messagebox.showwarning(
+                "Formato no admitido",
+                f"«{icono}» no es una imagen {FORMATOS_IMAGEN}.\n\nEl icono del "
+                f"control tiene que ser un archivo .png, .jpg o .jpeg.", parent=self)
+            return
         tipo_d = self._entero(self.var_desp)
         img_pos = next((k for k, v in IMG_POS_ETIQUETA.items() if v == self.var_imgpos.get()), "")
         contenido = dict(self.contenido)
@@ -359,8 +374,7 @@ class DialogoAccion(_DialogoBase):
             "publicar": bool(self.var_publicar.get()),
             "valor_maximo": valor_maximo,
             "img_pos": img_pos,
-            # Solo el nombre, aunque el campo traiga una ruta de un archivo antiguo.
-            "directorio": os.path.basename(self.var_dir.get().strip()),
+            "directorio": icono,
             "tipo_d": tipo_d,
         }}
         self.destroy()

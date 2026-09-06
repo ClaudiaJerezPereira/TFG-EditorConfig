@@ -12,7 +12,7 @@ from ...modelo.geometria import MARGEN_TEXTO
 from ..apariencia import (ALTO_MUESTRA, ANCHO_MUESTRA, COL_ETQ_TEXTO, FUENTE,
                           Spin as _Spin)
 from ..fuentes import cabe_texto, color_de_estilo, fuente_de_estilo, tam_automatico
-from ..imagenes import RESAMPLE
+from ..imagenes import FORMATOS_IMAGEN, RESAMPLE, TIPOS_IMAGEN, extension_admitida
 from .base import _DialogoBase
 
 
@@ -298,9 +298,15 @@ class DialogoContenido(_DialogoBase):
         carpeta = self._carpeta()
         ruta = filedialog.askopenfilename(
             parent=self, title="Selecciona la imagen de la etiqueta",
-            initialdir=carpeta,
-            filetypes=[("Imagenes", "*.png *.jpg *.jpeg *.gif *.bmp"), ("Todos", "*.*")])
+            initialdir=carpeta, filetypes=TIPOS_IMAGEN)
         if not ruta:
+            return
+        if not extension_admitida(ruta):
+            messagebox.showwarning(
+                "Formato no admitido",
+                f"«{os.path.basename(ruta)}» no es una imagen {FORMATOS_IMAGEN}.\n\n"
+                f"La imagen de la etiqueta tiene que ser un archivo .png, .jpg o "
+                f".jpeg.", parent=self)
             return
         if os.path.normcase(os.path.dirname(os.path.abspath(ruta))) != \
                 os.path.normcase(os.path.abspath(carpeta)):
@@ -326,6 +332,16 @@ class DialogoContenido(_DialogoBase):
                 "Identificador demasiado largo",
                 f"«{valor}» tiene {len(valor)} caracteres y la vista del partido admite "
                 f"{MAX_ID_PARTIDO} como máximo.", parent=self)
+            return
+        # El nombre del archivo se puede teclear sin pasar por el boton de buscar,
+        # asi que el limite de formatos se comprueba tambien aqui. La imagen web
+        # (tipo 3) queda fuera: no es un archivo del editor, sino una direccion que
+        # el arbitraje descarga al arrancar.
+        if not externa and tipo == 2 and not extension_admitida(valor):
+            messagebox.showwarning(
+                "Formato no admitido",
+                f"«{valor}» no es una imagen {FORMATOS_IMAGEN}.\n\nLa imagen de la "
+                f"etiqueta tiene que ser un archivo .png, .jpg o .jpeg.", parent=self)
             return
         tam = None
         if (externa or tipo != 2) and not self.var_auto.get():
